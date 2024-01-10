@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColorParty</title>
+    <style>
+        #restartButton {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        body {
+            background-color: rgb(255, 255, 255);
+        }
+
+        #mainContainer {
+            text-align: center;
+        }
+
+        #randomColorBlock {
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            background-color: #ffffff;
+        }
+
+        .smallColorBlock {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+
+        #messageContainer {
+            display: none; /* Скрыто по умолчанию, добавлено для последовательности */
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #000;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+        }
+        #restartButton{
+            border: 0px;
+            margin-left: auto;
+            margin-right: auto;
+            font-weight: bold;
+            font-size: 24px;
+            background-color: #000;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="mainContainer">
+        <div id="randomColorBlock"></div>
+        <div class="smallColorBlock"></div>
+        <div class="smallColorBlock"></div>
+        <div class="smallColorBlock"></div>
+        <div>Очки: <span id="currentStreak">0</span></div>
+        <div>Рекорд: <span id="recordStreak">0</span></div>
+    </div>
+    <button id="restartButton">Начать заново</button>
+    <div id="messageContainer"></div>
+    <script>
+    let currentStreak = 0;
+let recordStreak = 0;
+let gameTimeout;
+
+function updateStreak(won) {
+    if(won) {
+        currentStreak++;
+        if(currentStreak > recordStreak) {
+            recordStreak = currentStreak;
+            document.getElementById('recordStreak').textContent = recordStreak;
+        }
+    } else {
+        currentStreak = 0;
+    }
+    document.getElementById('currentStreak').textContent = currentStreak;
+}
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function setRandomColors() {
+    var randomColor = getRandomColor();
+    document.getElementById('randomColorBlock').style.backgroundColor = randomColor;
+
+    var colorOptions = document.getElementsByClassName('smallColorBlock');
+    for (var i = 0; i < colorOptions.length; i++) {
+        colorOptions[i].style.backgroundColor = getRandomColor();
+    }
+    colorOptions[Math.floor(Math.random() * colorOptions.length)].style.backgroundColor = randomColor;
+}
+
+function showMessage(message) {
+    var messageContainer = document.getElementById('messageContainer');
+
+    // Сообщение о проигрыше + текущий счет и рекорд
+    messageContainer.innerHTML = message + '<br><br>' +
+        'Очки: ' + currentStreak + '<br>' +
+        'Рекорд: ' + recordStreak;
+
+    messageContainer.style.display = 'block';
+    document.getElementById('restartButton').style.display = 'block';
+}
+
+function hideMessage() {
+    let messageContainer = document.getElementById('messageContainer');
+    messageContainer.style.display = 'none';
+    document.getElementById('restartButton').style.display = 'none';
+}
+
+// Обновите функцию resetGame, чтобы она скрывала сообщение и кнопку перезапуска:
+function resetGame() {
+    clearTimeout(gameTimeout);
+    updateStreak(false);
+    setRandomColors();
+    startInterval();
+    document.getElementById('mainContainer').style.display = 'block'; // Убедитесь, что mainContainer виден
+    hideMessage(); // Убедитесь, что сообщение и кнопка перезапуска скрыты
+}
+
+document.getElementById('restartButton').onclick = function() {
+    resetGame();
+};
+function loseGame(wrongColor = false) {
+    // Скрыть основной контейнер игры.
+    document.getElementById('mainContainer').style.display = 'none';
+
+    // Показать сообщение и кнопку перезапуска.
+    showMessage(wrongColor ? 'Неправильно! Вы проиграли!' : 'Время вышло, вы проиграли.');
+    document.getElementById('restartButton').style.display = 'block';
+}
+
+document.getElementById('restartButton').onclick = function() {
+    // Показать основной контейнер игры при перезапуске.
+    document.getElementById('mainContainer').style.display = 'block';
+
+    // Скрыть кнопку перезапуска и сообщение ошибки.
+    this.style.display = 'none';
+    hideMessage();
+
+    // Сбросить состояние игры.
+    resetGame();
+};
+        function startInterval() {
+            gameTimeout = setTimeout(function() { loseGame(false); }, 1000); 
+        }
+function checkColorMatch(event) {
+            var correctColor = document.getElementById('randomColorBlock').style.backgroundColor;
+            clearTimeout(gameTimeout);
+            if (event.target.style.backgroundColor === correctColor) {
+                updateStreak(true);
+                setRandomColors();
+                startInterval();
+            } else {
+                loseGame(true);
+            }
+        }
+        document.getElementById('restartButton').onclick = function() {
+    resetGame();
+};
+
+function addEventListeners() {
+    let colorOptions = document.getElementsByClassName('smallColorBlock');
+    for (let i = 0; i < colorOptions.length; i++) {
+        colorOptions[i].addEventListener('click', checkColorMatch);
+    }
+}
+
+function initGame() {
+    updateStreak(false);
+    setRandomColors();
+    addEventListeners();
+    startInterval();
+}
+
+// Старт игры при загрузке страницы
+initGame();
+</script>
+</body> </html>
